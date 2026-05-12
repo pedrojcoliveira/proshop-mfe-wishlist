@@ -27,7 +27,7 @@ const WishlistButton = ({ product }) => {
 
     localStorage.setItem('wishlist', JSON.stringify(updated));
     setInWishlist(!inWishlist);
-    window.dispatchEvent(new Event('wishlistUpdated'));
+    window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: updated.length } }));
   };
 
   return (

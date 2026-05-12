@@ -9,18 +9,46 @@ const WishlistPage = () => {
   );
 
   useEffect(() => {
+    // verifica ao montar se algum produto da wishlist já está marcado como esgotado
+    const outOfStock = JSON.parse(localStorage.getItem('outOfStock') || '[]');
+    if (outOfStock.length > 0) {
+      const outOfStockIds = outOfStock.map((p) => p.productId);
+      const updated = JSON.parse(localStorage.getItem('wishlist') || '[]')
+        .filter((item) => !outOfStockIds.includes(item._id));
+      if (updated.length !== JSON.parse(localStorage.getItem('wishlist') || '[]').length) {
+        localStorage.setItem('wishlist', JSON.stringify(updated));
+        setWishlist(updated);
+        window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: updated.length } }));
+      }
+    }
+
     const handleUpdate = () => {
       setWishlist(JSON.parse(localStorage.getItem('wishlist') || '[]'));
     };
+
+    // subscreve para reagir em tempo real se o utilizador estiver na página
+    const handleStockEmpty = (e) => {
+      const { productId } = e.detail;
+      const updated = JSON.parse(localStorage.getItem('wishlist') || '[]')
+        .filter((item) => item._id !== productId);
+      localStorage.setItem('wishlist', JSON.stringify(updated));
+      setWishlist(updated);
+      window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: updated.length } }));
+    };
+
     window.addEventListener('wishlistUpdated', handleUpdate);
-    return () => window.removeEventListener('wishlistUpdated', handleUpdate);
+    if (window.__eventBus) window.__eventBus.subscribe('stockEmpty', handleStockEmpty);
+    return () => {
+      window.removeEventListener('wishlistUpdated', handleUpdate);
+      if (window.__eventBus) window.__eventBus.unsubscribe('stockEmpty', handleStockEmpty);
+    };
   }, []);
 
   const removeFromWishlist = (id) => {
     const updated = wishlist.filter((item) => item._id !== id);
     localStorage.setItem('wishlist', JSON.stringify(updated));
     setWishlist(updated);
-    window.dispatchEvent(new Event('wishlistUpdated'));
+    window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: updated.length } }));
   };
 
   return (
