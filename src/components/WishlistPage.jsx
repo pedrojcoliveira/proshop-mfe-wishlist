@@ -1,55 +1,29 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Image, Button } from 'react-bootstrap';
+import { Row, Col, Card, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FaTrash } from 'react-icons/fa';
+import wishlistStore from '../store/wishlistStore';
 
 const WishlistPage = () => {
-  const [wishlist, setWishlist] = useState(
-    JSON.parse(localStorage.getItem('wishlist') || '[]')
-  );
+  const [wishlist, setWishlist] = useState(() => wishlistStore.getAll());
 
   useEffect(() => {
-    // verifica ao montar se algum produto da wishlist já está marcado como esgotado
-    const outOfStock = JSON.parse(localStorage.getItem('outOfStock') || '[]');
-    if (outOfStock.length > 0) {
-      const outOfStockIds = outOfStock.map((p) => p.productId);
-      const updated = JSON.parse(localStorage.getItem('wishlist') || '[]')
-        .filter((item) => !outOfStockIds.includes(item._id));
-      if (updated.length !== JSON.parse(localStorage.getItem('wishlist') || '[]').length) {
-        localStorage.setItem('wishlist', JSON.stringify(updated));
-        setWishlist(updated);
-        window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: updated.length } }));
-      }
-    }
+    // Subscreve o store — atualiza a lista quando qualquer MFE altera a wishlist
+    const unsubscribe = wishlistStore.subscribe((items) => {
+      setWishlist(items);
+    });
 
-    const handleUpdate = () => {
-      setWishlist(JSON.parse(localStorage.getItem('wishlist') || '[]'));
-    };
-
-    // subscreve para reagir em tempo real se o utilizador estiver na página
+    // Reage ao Event Bus para remover produtos esgotados
     const handleStockEmpty = (e) => {
-      const { productId } = e.detail;
-      const updated = JSON.parse(localStorage.getItem('wishlist') || '[]')
-        .filter((item) => item._id !== productId);
-      localStorage.setItem('wishlist', JSON.stringify(updated));
-      setWishlist(updated);
-      window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: updated.length } }));
+      wishlistStore.remove(e.detail.productId);
     };
-
-    window.addEventListener('wishlistUpdated', handleUpdate);
     if (window.__eventBus) window.__eventBus.subscribe('stockEmpty', handleStockEmpty);
+
     return () => {
-      window.removeEventListener('wishlistUpdated', handleUpdate);
+      unsubscribe();
       if (window.__eventBus) window.__eventBus.unsubscribe('stockEmpty', handleStockEmpty);
     };
   }, []);
-
-  const removeFromWishlist = (id) => {
-    const updated = wishlist.filter((item) => item._id !== id);
-    localStorage.setItem('wishlist', JSON.stringify(updated));
-    setWishlist(updated);
-    window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: updated.length } }));
-  };
 
   return (
     <div style={{ padding: '20px' }}>
@@ -77,7 +51,7 @@ const WishlistPage = () => {
                   <Button
                     variant='danger'
                     size='sm'
-                    onClick={() => removeFromWishlist(product._id)}
+                    onClick={() => wishlistStore.remove(product._id)}
                   >
                     <FaTrash /> Remove
                   </Button>

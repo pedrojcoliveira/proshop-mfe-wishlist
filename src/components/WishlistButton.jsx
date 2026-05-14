@@ -1,33 +1,30 @@
 import { useState, useEffect } from 'react';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
+import wishlistStore from '../store/wishlistStore';
 
 const WishlistButton = ({ product }) => {
-  const [inWishlist, setInWishlist] = useState(false);
+  const [inWishlist, setInWishlist] = useState(() => wishlistStore.has(product._id));
   const userInfo = localStorage.getItem('userInfo');
 
   if (!userInfo) return null;
 
   useEffect(() => {
-    const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-    setInWishlist(wishlist.some((item) => item._id === product._id));
+    // Subscreve o store — atualiza o botão quando outro MFE altera a wishlist
+    const unsubscribe = wishlistStore.subscribe((items) => {
+      setInWishlist(items.some((item) => item._id === product._id));
+    });
+    return unsubscribe;
   }, [product._id]);
 
   const toggleWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-    let updated;
-
     if (inWishlist) {
-      updated = wishlist.filter((item) => item._id !== product._id);
+      wishlistStore.remove(product._id);
     } else {
-      updated = [...wishlist, product];
+      wishlistStore.add(product);
     }
-
-    localStorage.setItem('wishlist', JSON.stringify(updated));
-    setInWishlist(!inWishlist);
-    window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: updated.length } }));
   };
 
   return (

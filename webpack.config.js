@@ -47,6 +47,8 @@ module.exports = {
       exposes: {
         "./WishlistApp": "./src/WishlistApp.js",
         "./WishlistButton": "./src/components/WishlistButton.jsx",
+        "./WishlistBadge": "./src/components/WishlistBadge.jsx",
+        "./WishlistStore": "./src/store/wishlistStore.js",
       },
       shared: {
         react: { singleton: true, requiredVersion: false },
