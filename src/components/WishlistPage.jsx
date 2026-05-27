@@ -8,7 +8,7 @@ const WishlistPage = () => {
   const [wishlist, setWishlist] = useState(() => wishlistStore.getAll());
 
   useEffect(() => {
-    // Subscreve o store — atualiza a lista quando qualquer MFE altera a wishlist
+    // Subscreve a store — atualiza a lista quando qualquer MFE altera a wishlist
     const unsubscribe = wishlistStore.subscribe((items) => {
       setWishlist(items);
     });

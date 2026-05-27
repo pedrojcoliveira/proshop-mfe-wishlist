@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import wishlistStore from '../store/wishlistStore';
+import authService from 'mfeAuth/AuthService';
+
 
 const WishlistButton = ({ product }) => {
   const [inWishlist, setInWishlist] = useState(() => wishlistStore.has(product._id));
-  const userInfo = localStorage.getItem('userInfo');
+  const userInfo = authService.getUser();
 
   if (!userInfo) return null;
 

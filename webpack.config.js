@@ -50,6 +50,9 @@ module.exports = {
         "./WishlistBadge": "./src/components/WishlistBadge.jsx",
         "./WishlistStore": "./src/store/wishlistStore.js",
       },
+      remotes: {
+        mfeAuth: "mfeAuth@http://localhost:4201/remoteEntry.js",
+      },
       shared: {
         react: { singleton: true, requiredVersion: false },
         "react-dom": { singleton: true, requiredVersion: false },

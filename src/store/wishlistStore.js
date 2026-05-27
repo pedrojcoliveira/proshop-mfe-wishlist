@@ -3,6 +3,15 @@ const wishlistStore = (() => {
   let items = JSON.parse(localStorage.getItem('wishlist') || '[]');
   let subscribers = [];
 
+  // Limpa a wishlist quando o utilizador faz logout
+  window.addEventListener('userChanged', (e) => {
+    if (!e.detail.userInfo) {
+      items = [];
+      localStorage.removeItem('wishlist');
+      subscribers.forEach((cb) => cb([...items]));
+    }
+  });
+
   // Notifica todos os subscritores com o estado atual
   const notify = () => {
     subscribers.forEach((cb) => cb([...items]));
