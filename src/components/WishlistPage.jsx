@@ -13,16 +13,7 @@ const WishlistPage = () => {
       setWishlist(items);
     });
 
-    // Reage ao Event Bus para remover produtos esgotados
-    const handleStockEmpty = (e) => {
-      wishlistStore.remove(e.detail.productId);
-    };
-    if (window.__eventBus) window.__eventBus.subscribe('stockEmpty', handleStockEmpty);
-
-    return () => {
-      unsubscribe();
-      if (window.__eventBus) window.__eventBus.unsubscribe('stockEmpty', handleStockEmpty);
-    };
+    return unsubscribe;
   }, []);
 
   return (
